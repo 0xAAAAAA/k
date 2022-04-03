@@ -31,9 +31,17 @@
 
         async init ()
         {
-            this.stream = await navigator.mediaDevices.getUserMedia(this.CONSTRAINTS)
-            this.recorder = new MediaRecorder(this.stream, this.MROPTS)
-
+            try
+            {
+                this.stream = await navigator.mediaDevices.getUserMedia(this.CONSTRAINTS)
+                this.recorder = new MediaRecorder(this.stream, this.MROPTS)
+            }
+            catch (e)
+            {
+                document.querySelector('.info').innerHTML = e.message
+                return
+            }
+            
             this.recorder.ondataavailable = this.tick
             this.recorder.start(this.SAMPLE_T)
             this.t_start = Date.now()
