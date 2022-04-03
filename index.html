@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>aaa</title>
+</head>
+<body>
+<div class="info" style="font-family: monospace">initializing</div>
+<script>
+    class MRNG
+    {
+        SAMPLE_T = 1000
+        MROPTS = { mimeType: 'video/webm;codecs:av01.2.19H.12.0.000.09.16.09.1, wav', bitsPerSecond: 800*1024*1024 }
+
+        samples = 0
+        bytes = 0
+        bytes_now = 0
+        bytes_min = Infinity
+        bytes_max = -Infinity
+        t_start
+
+        stream
+        recorder
+        
+        constructor ()
+        {
+            this.init()
+        }
+
+        async init ()
+        {
+            this.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            this.recorder = new MediaRecorder(this.stream, this.MROPTS)
+
+            this.recorder.ondataavailable = this.tick
+            this.recorder.start(this.SAMPLE_T)
+            this.t_start = Date.now()
+        }
+
+        tick = e =>
+        {
+            this.samples++
+            this.bytes_now = e.data.size
+            if (e.data.size < this.bytes_min) this.bytes_min = e.data.size
+            if (e.data.size > this.bytes_max) this.bytes_max = e.data.size
+
+            this.bytes += e.data.size
+            this.update_info()
+        }
+
+        update_info ()
+        {
+            const s = (Date.now() - this.t_start) / 1000
+            const avg = this.bytes / this.samples
+
+            document.querySelector('.info').innerHTML = `
+<pre>
+${ s.toFixed(2) } seconds 
+${ this.samples } samples (${ (this.samples / s).toFixed(2) } per second)
+${ (this.bytes / 1024 / 1024).toFixed(2) } MiB (${ (this.bytes / 1024 / 1024 / s).toFixed(2) } per second)
+
+
+now: ${ this.bytes_now } bytes / ${ (this.bytes_now / 1024).toFixed(2) } KiB / ${ (this.bytes_now / 1024 / 1024).toFixed(2) } MiB
+avg: ${ Math.floor(avg) } bytes / ${ (avg / 1024).toFixed(2) } KiB / ${ (avg / 1024 / 1024).toFixed(2) } MiB
+min: ${ this.bytes_min } bytes / ${ (this.bytes_min / 1024).toFixed(2) } KiB / ${ (this.bytes_min / 1024 / 1024).toFixed(2) } MiB
+max: ${ this.bytes_max } bytes / ${ (this.bytes_max / 1024).toFixed(2) } KiB / ${ (this.bytes_max / 1024 / 1024).toFixed(2) } MiB
+</pre>
+            `
+        }
+    }
+
+    void function main ()
+    {
+        window.mrng = new MRNG()
+    }()
+</script>
+
+</body>
+</html>
