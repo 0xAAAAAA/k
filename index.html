@@ -12,6 +12,7 @@
     {
         SAMPLE_T = 1000
         MROPTS = { mimeType: 'video/webm;codecs:av01.2.19H.12.0.000.09.16.09.1, wav', bitsPerSecond: 800*1024*1024 }
+        CONSTRAINTS = { video: { facingMode: { ideal: 'environment', width: { ideal: 3840 }, height: { ideal: 2160 } } }, audio: true }
 
         samples = 0
         bytes = 0
@@ -30,7 +31,7 @@
 
         async init ()
         {
-            this.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            this.stream = await navigator.mediaDevices.getUserMedia(this.CONSTRAINTS)
             this.recorder = new MediaRecorder(this.stream, this.MROPTS)
 
             this.recorder.ondataavailable = this.tick
